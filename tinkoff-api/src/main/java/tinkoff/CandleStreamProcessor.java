@@ -28,6 +28,7 @@ public class CandleStreamProcessor {
                         .setFigi(response.getCandle().getFigi())
                         .setClosePrice(response.getCandle().getClose().getUnits() + response.getCandle().getClose().getNano() * Math.pow(10, -9))
                         .setTime(response.getCandle().getTime())
+                        .setVolume(response.getCandle().getVolume())
                         .build();
 
 
@@ -35,6 +36,7 @@ public class CandleStreamProcessor {
 
                 // запись значений candleData в бд
                 db.insertFigiData(candleData);
+
                 
             }
         };
@@ -55,11 +57,13 @@ public class CandleStreamProcessor {
         private final String figi;
         private final double closePrice;
         private final Timestamp time;
+        private final long volume;
 
-        public CandleData(String figi, double closePrice, Timestamp time) {
+        public CandleData(String figi, double closePrice, Timestamp time, long volume) {
             this.figi = figi;
             this.closePrice = closePrice;
             this.time = time;
+            this.volume = volume;
         }
 
         public String getFigi() {
@@ -73,13 +77,17 @@ public class CandleStreamProcessor {
         public Timestamp getTime() {
             return time;
         }
+        public long getVolume(){
+            return volume;
+        }
 
         @Override
         public String toString() {
             return "CandleData{" + "\n" +
                     "figi=" + figi + "\n" +
                     "closePrice=" + closePrice + "\n" +
-                    "time=" + time +
+                    "time=" + time + "\n" +
+                    "volume=" + volume +
                     "}";
         }
     }
@@ -89,6 +97,7 @@ public class CandleStreamProcessor {
         private String figi;
         private double closePrice;
         private Timestamp time;
+        private long volume;
 
         public CandleDataBuilder setFigi(String figi) {
             this.figi = figi;
@@ -105,8 +114,13 @@ public class CandleStreamProcessor {
             return this; 
         }
 
+        public CandleDataBuilder setVolume(long volume){
+            this.volume = volume;
+            return this;
+        }
+
         public CandleData build() {
-            return new CandleData(figi, closePrice, time); 
+            return new CandleData(figi, closePrice, time, volume); 
         }
     }
 }
