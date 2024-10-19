@@ -7,12 +7,11 @@ import java.util.concurrent.CountDownLatch;
 public class Main {
 
     public static void main(String[] args) {
-        DataBase db = new DataBase();
 
-        db.startDB();
-        db.insertHistoricData(DataStorage.figiList);
-        db.selectData(DataStorage.figiList);
         CandleStreamProcessor candleStreamProcessor = new CandleStreamProcessor(CreateToken.getToken());
+        DataBase db = new DataBase();
+        
+        db.createFigiTable();
 
         //Обработка и вывод значений свечей
         candleStreamProcessor.processMarketData(DataStorage.figiList);
