@@ -2,6 +2,9 @@ package tinkoff;
 
 import java.util.concurrent.CountDownLatch;
 
+import tinkoff.DataBase.HistoryDataBase;
+import tinkoff.DataBase.StreamDataBase;
+
 
 
 public class Main {
@@ -9,13 +12,18 @@ public class Main {
     public static void main(String[] args) {
 
         CandleStreamProcessor candleStreamProcessor = new CandleStreamProcessor(CreateToken.getToken());
-        DataBase db = new DataBase();
+
+        StreamDataBase db = new StreamDataBase();
+
+        HistoryDataBase hdb = new HistoryDataBase();
         
         db.createFigiTable();
 
-        //Обработка и вывод значений свечей
-        candleStreamProcessor.processMarketData(DataStorage.figiList);
+        //hdb.getInsertHistoryData();
 
+        //Обработка и вывод значений свечей
+        //candleStreamProcessor.processMarketData(DataStorage.figiList);
+        
         CountDownLatch latch = new CountDownLatch(1);
         try {
             latch.await();

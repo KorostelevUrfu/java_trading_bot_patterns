@@ -3,6 +3,7 @@ package tinkoff;
 import ru.tinkoff.piapi.core.InvestApi;
 import ru.tinkoff.piapi.core.stream.MarketDataStreamService;
 import ru.tinkoff.piapi.core.stream.StreamProcessor;
+import tinkoff.DataBase.StreamDataBase;
 import ru.tinkoff.piapi.contract.v1.MarketDataResponse;
 
 import java.util.List;
@@ -10,8 +11,6 @@ import java.util.function.Consumer;
 
 import com.google.protobuf.Timestamp;
 
-
-// Класс для обработки рыночных данных
 public class CandleStreamProcessor {
 
     private final MarketDataStreamService marketDataStream;
@@ -29,18 +28,16 @@ public class CandleStreamProcessor {
                 Timestamp time = response.getCandle().getTime();
                 long volume = response.getCandle().getVolume();
 
-                DataBase db = new DataBase(figi_stream, close_price, time, volume);
-                
+                StreamDataBase db = new StreamDataBase(figi_stream, close_price, time, volume);
+            
+                //запись данных свечи в БД
                 db.insertFigiData();
                 //выводим данные свечи
                 db.printCandleData();
             }
         };
-
         Consumer<Throwable> onErrorCallback = error -> System.err.println("Ошибка: " + error.toString());
-
         // Подписка на поток свечей
         marketDataStream.newStream("candles_stream", processor, onErrorCallback).subscribeCandles(figiList, true);
-        
     }
 }

@@ -1,4 +1,4 @@
-package tinkoff;
+package tinkoff.DataBase;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -6,40 +6,39 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
+
 import java.util.List;
 
 import com.google.protobuf.Timestamp;
 
-import ru.tinkoff.piapi.contract.v1.CandleInterval;
-import ru.tinkoff.piapi.contract.v1.HistoricCandle;
+import tinkoff.DataStorage;
 
-public class DataBase {
 
-    private final String db_url = String.format("jdbc:postgresql://%s:%s/%s?user=%s&password=%s&ssl=%s",
+public class StreamDataBase {
+
+    protected final String db_url = String.format("jdbc:postgresql://%s:%s/%s?user=%s&password=%s&ssl=%s",
         DataStorage.db_host, DataStorage.db_port, DataStorage.db_name, DataStorage.db_user, DataStorage.db_password, DataStorage.db_ssl);
 
-    private String figi_stream;
-    private double close_price;
-    private Timestamp time;
-    private long volume;
-    private List<String> figi_list = DataStorage.figiList;
+    protected String figi;
+    protected double close_price;
+    protected Timestamp time;
+    protected long volume;
+    protected List<String> figi_list = DataStorage.figiList;
 
-    public DataBase(String figi_stream, double close_price, Timestamp time, long volume){
-        this.figi_stream = figi_stream;
+    public StreamDataBase(String figi_stream, double close_price, Timestamp time, long volume){
+        this.figi = figi_stream;
         this.close_price = close_price;
         this.time = time;
         this.volume = volume;
     }
 
-    public DataBase(){
+    public StreamDataBase(){
 
     }
 
     public void printCandleData(){
         System.out.println(
-            "Данные свечи: "+ figi_stream + "\n" + 
+            "Данные свечи: "+ figi + "\n" + 
             "close_price= " + close_price + "\n" +
             "time= " + time + 
             "volume= " + volume + "\n"
@@ -47,7 +46,7 @@ public class DataBase {
     }
 
     //преобразует com.google.protobuf.Timestamp в java.sql.Timestamp иначе будет ошибка вставки данных времени
-    private java.sql.Timestamp rebuildTimestamp(){
+    protected java.sql.Timestamp rebuildTimestamp(){
         long seconds = time.getSeconds();
         int nanos = time.getNanos();
         java.sql.Timestamp sql_time = new java.sql.Timestamp(seconds * 1000 + nanos / 1000000);
@@ -67,13 +66,13 @@ public class DataBase {
     }
 
     public void insertFigiData(){
-        String insert_data = "INSERT INTO " + figi_stream + " (close_price, time) VALUES (?, ?)";
+        String insert_data = "INSERT INTO " + figi + " (close_price, time) VALUES (?, ?)";
         try (Connection conn = DriverManager.getConnection(db_url); PreparedStatement preparedState = conn.prepareStatement(insert_data)) {
             preparedState.setDouble(1, close_price);
             preparedState.setTimestamp(2, rebuildTimestamp());
             int rowsInserted = preparedState.executeUpdate();
             if (rowsInserted > 0) {
-                System.out.printf("Данные свечи успешно добавлены в таблицу %s.\n", figi_stream);
+                System.out.printf("Данные свечи успешно добавлены в таблицу %s.\n", figi);
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -107,36 +106,6 @@ public class DataBase {
             e.printStackTrace();
         }
     }
-
-    // public void insertHistoricData(){
-    //     for(String figi: figi_list){
-    //         List<HistoricCandle> candles1min = CreateToken.getToken().getMarketDataService()
-    //         .getCandlesSync(figi, Instant.now().minus(1, ChronoUnit.DAYS), Instant.now(),
-    //         CandleInterval.CANDLE_INTERVAL_1_MIN);
-
-    //         for(int i = 0; i < candles1min.size(); i++){
-    //         double close_price = candles1min.get(i).getClose().getUnits() + candles1min.get(i).getClose().getNano() * Math.pow(10, -9);
-    //         com.google.protobuf.Timestamp time = candles1min.get(i).getTime();
-
-    //             String insert = "INSERT INTO " + figi + " (close_price, time) VALUES (?, ?)";
-
-    //             try (Connection conn = DriverManager.getConnection(db_url);
-    //             PreparedStatement preparedStatement = conn.prepareStatement(insert)) {
-    
-    //             preparedStatement.setDouble(1, close_price);
-    //             preparedStatement.setTimestamp(2, new Timestamp());
-    
-    //             int rowsInserted = preparedStatement.executeUpdate();
-    //             if (rowsInserted > 0) {
-    //                 System.out.printf("Данные свечи успешно добавлены в таблицу %s.\n", figi);
-    //             }
-    //         } catch (SQLException e) {
-    //             e.printStackTrace();
-    //         }
-    //         }
-    //     }   
-    // }
-
 }
 
 

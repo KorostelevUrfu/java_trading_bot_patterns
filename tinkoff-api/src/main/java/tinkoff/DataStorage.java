@@ -6,7 +6,7 @@ import java.util.List;
 public class DataStorage {
         
 
-    public static final String token = "";
+    public static final String token = "t.huLeW-H-ho2mLIESrnNV-u2F_Nd5RgoZVavinFPAJuRD6-28hnRQ_aGl5CEvtQEBjkC3MVdsJT_ZZl5-Ifvrjw";
     
     public static List<String> figiList = List.of(
         "BBG004730ZJ9"
