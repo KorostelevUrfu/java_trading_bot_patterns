@@ -22,7 +22,7 @@ public class Main {
         //hdb.getInsertHistoryData();
 
         //Обработка и вывод значений свечей
-        //candleStreamProcessor.processMarketData(DataStorage.figiList);
+        candleStreamProcessor.processMarketData(DataStorage.figiList);
         
         CountDownLatch latch = new CountDownLatch(1);
         try {

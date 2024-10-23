@@ -30,10 +30,10 @@ public class CandleStreamProcessor {
 
                 StreamDataBase db = new StreamDataBase(figi_stream, close_price, time, volume);
             
-                //запись данных свечи в БД
-                db.insertFigiData();
                 //выводим данные свечи
                 db.printCandleData();
+                //запись данных свечи в БД
+                db.insertFigiData();
             }
         };
         Consumer<Throwable> onErrorCallback = error -> System.err.println("Ошибка: " + error.toString());
