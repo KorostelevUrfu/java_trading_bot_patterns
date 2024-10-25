@@ -2,6 +2,8 @@ package tinkoff;
 
 import java.util.List;
 
+import java.io.File;
+
 //хранение переменных
 public class DataStorage {
         
@@ -18,5 +20,8 @@ public class DataStorage {
     public static final String db_user= "postgres";
     public static final String db_password = "1";
     public static final String db_ssl = "False";
+
+    //путь к файлу с архивами котировок
+    public static final File path = new File("C:\\Users\\user\\Desktop\\Tinkoff data\\Stock_Quotes");
     
 }

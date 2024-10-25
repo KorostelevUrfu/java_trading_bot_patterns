@@ -20,9 +20,10 @@ public class Main {
         db.createFigiTable();
 
         //hdb.getInsertHistoryData();
+        hdb.serachFiles();
 
         //Обработка и вывод значений свечей
-        candleStreamProcessor.processMarketData(DataStorage.figiList);
+        //candleStreamProcessor.processMarketData(DataStorage.figiList);
         
         CountDownLatch latch = new CountDownLatch(1);
         try {
