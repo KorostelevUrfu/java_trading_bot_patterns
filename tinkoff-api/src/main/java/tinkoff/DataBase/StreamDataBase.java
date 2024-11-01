@@ -6,7 +6,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-
+import java.util.ArrayList;
 import java.util.List;
 
 import com.google.protobuf.Timestamp;
@@ -23,7 +23,7 @@ public class StreamDataBase {
     protected double close_price;
     protected Timestamp time;
     protected long volume;
-    protected List<String> figi_list = DataStorage.figiList;
+    protected int candle_interval;
 
     public StreamDataBase(String figi_stream, double close_price, Timestamp time, long volume){
         this.figi = figi_stream;
@@ -55,53 +55,72 @@ public class StreamDataBase {
 
     public void createFigiTable(){
         try (Connection conn = DriverManager.getConnection(db_url); Statement state = conn.createStatement()) {
-            for(String figi : figi_list){
-                String create_table = "CREATE TABLE IF NOT EXISTS " + figi + " (close_price REAL, time TIMESTAMP);";
-                state.execute(create_table);
-                System.out.printf("Успешно создана таблица %s.\n", figi);
-            }
+            String create_table = "CREATE TABLE IF NOT EXISTS " + figi + " (close_price REAL, time TIMESTAMP, volume INT);";
+            state.execute(create_table);
+            System.out.printf("Успешно создана таблица %s.\n", figi);
+            conn.close();
         } catch (SQLException e) {
             e.printStackTrace();
         }
     }
 
     public void insertFigiData(){
-        String insert_data = "INSERT INTO " + figi + " (close_price, time) VALUES (?, ?)";
+        String insert_data = "INSERT INTO " + figi + " (close_price, time, volume) VALUES (?, ?, ?)";
         try (Connection conn = DriverManager.getConnection(db_url); PreparedStatement preparedState = conn.prepareStatement(insert_data)) {
             preparedState.setDouble(1, close_price);
             preparedState.setTimestamp(2, rebuildTimestamp());
+            preparedState.setDouble(3, volume);
             int rowsInserted = preparedState.executeUpdate();
             if (rowsInserted > 0) {
                 System.out.printf("Данные свечи успешно добавлены в таблицу %s.\n", figi);
             }
+            conn.close();
         } catch (SQLException e) {
             e.printStackTrace();
         }
+        
     }
 
     public void selectData(){
         try (Connection conn = DriverManager.getConnection(db_url);
-        Statement state = conn.createStatement();) {
-            for(String figi:figi_list){
-                ResultSet select_data = state.executeQuery("SELECT close_price FROM " + figi + " ORDER BY time;");
-                while (select_data.next()) {
-                    double closePrice = select_data.getDouble("close_price");
-                    System.out.println("Close Price: " + closePrice + " " + figi); //позже будет передавать в класс стратегий
-                }
-            } 
+            Statement state = conn.createStatement();) {
+            ResultSet select_data = state.executeQuery("SELECT close_price, time FROM " + figi + " ORDER BY time");
+            while (select_data.next()) {
+                double closePrice = select_data.getDouble("close_price");
+                java.sql.Timestamp time = select_data.getTimestamp("time");
+                
+                //time_compare.add(time);
+                System.out.println("Close Price: " + closePrice + " " + time + " " + figi); //позже будет передавать в класс стратегий
+                //splitDataByInterval(time, closePrice, interval, time_compare);
+            }
+            conn.close();
         }catch (Exception e) {
             e.printStackTrace();
         }
     }
+
+    // private void splitDataByInterval(java.sql.Timestamp time, double closePrice, int interval, List<java.sql.Timestamp> time_compare){
+    //         if(time_compare.size() == 1){System.out.println("Close Price: " + closePrice + " " + time + " " + figi + "hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh");}
+    //         if(time_compare.size() >= 2){
+
+    //             long result = time_compare.get(time_compare.size() - 1).getTime() - time_compare.get(time_compare.size() - 2).getTime();
+
+    //             if(result >= (interval*60000) && result <= (interval*60000*2)){
+                    
+    //                 System.out.println("Close Price: " + closePrice + " " + time + " " + figi + " " + result); //позже будет передавать в класс стратегий
+                    
+                        
+    //             }
+    //         }
+    // }
     
     
     public void deleteData(){
         try (Connection conn = DriverManager.getConnection(db_url); Statement state = conn.createStatement();) {
-            for (String figi : figi_list){
-                String delete_data = String.format("DELETE FROM %s;", figi);
-                state.execute(delete_data);
-                System.out.println("Данные удалены из таблицы " + figi);
-            }
+            String delete_data = String.format("DELETE FROM %s;", figi);
+            state.execute(delete_data);
+            System.out.println("Данные удалены из таблицы " + figi);
+            conn.close();
         }catch (Exception e) {
             e.printStackTrace();
         }

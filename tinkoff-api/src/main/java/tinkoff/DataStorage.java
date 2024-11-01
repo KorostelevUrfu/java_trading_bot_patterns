@@ -1,7 +1,5 @@
 package tinkoff;
 
-import java.util.List;
-
 import java.io.File;
 
 //хранение переменных
@@ -9,10 +7,8 @@ public class DataStorage {
         
 
     public static final String token = "";
-    
-    public static List<String> figiList = List.of(
-        "BBG004730ZJ9"
-    );
+
+    public static String[] tickers = {"SBER", "GAZP", "LKOH", "YDEX", "ROSN", "TATN", "SIBN"}; //голубые фишки (не всЁ и не все)
 
     public static final String db_host = "localhost";
     public static final String db_port = "5432";
