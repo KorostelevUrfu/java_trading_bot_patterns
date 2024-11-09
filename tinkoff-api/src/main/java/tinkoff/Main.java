@@ -27,7 +27,7 @@ public class Main {
 
         //hdb.getInsertHistoryData();
         //hdb.serachFiles();
-        hdb.selectHistoryData("SBER");
+        hdb.selectHistoryData("SBER", 60);
         //instruments.getFigiFromTicker();
         
 

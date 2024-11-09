@@ -138,9 +138,9 @@ private Instruments instruments = new Instruments();
         }
     }
 
-    public void selectHistoryData(String ticker){
+    public void selectHistoryData(String ticker, int interval){
         super.figi = instruments.getFigiFromTicker().get(ticker);
-        selectData();
+        selectData(interval);
     }
 }
 

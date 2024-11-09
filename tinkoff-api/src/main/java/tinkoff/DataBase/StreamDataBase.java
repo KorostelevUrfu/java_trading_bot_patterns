@@ -8,6 +8,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+import java.time.LocalDateTime;
 
 import com.google.protobuf.Timestamp;
 
@@ -24,6 +25,7 @@ public class StreamDataBase {
     protected Timestamp time;
     protected long volume;
     protected int candle_interval;
+    private ArrayList<java.sql.Timestamp> intervals = new ArrayList<>();
 
     public StreamDataBase(String figi_stream, double close_price, Timestamp time, long volume){
         this.figi = figi_stream;
@@ -49,6 +51,7 @@ public class StreamDataBase {
     protected java.sql.Timestamp rebuildTimestamp(){
         long seconds = time.getSeconds();
         int nanos = time.getNanos();
+        System.out.println("\n" + time.getAllFields() + "\n");
         java.sql.Timestamp sql_time = new java.sql.Timestamp(seconds * 1000 + nanos / 1000000);
         return sql_time;
     }
@@ -81,17 +84,21 @@ public class StreamDataBase {
         
     }
 
-    public void selectData(){
+    public void selectData(int interval){
         try (Connection conn = DriverManager.getConnection(db_url);
             Statement state = conn.createStatement();) {
             ResultSet select_data = state.executeQuery("SELECT close_price, time FROM " + figi + " ORDER BY time");
             while (select_data.next()) {
                 double closePrice = select_data.getDouble("close_price");
                 java.sql.Timestamp time = select_data.getTimestamp("time");
+
+                //java.time.LocalDateTime localDateTime = time.toLocalDateTime();
+                //java.time.Month month = localDateTime.getMonth();
                 
-                //time_compare.add(time);
-                System.out.println("Close Price: " + closePrice + " " + time + " " + figi); //позже будет передавать в класс стратегий
-                //splitDataByInterval(time, closePrice, interval, time_compare);
+                
+
+                //System.out.println("Close Price: " + closePrice + " " + time + " " + figi); //позже будет передавать в класс стратегий
+                splitDataByInterval(time, closePrice, interval, figi);
             }
             conn.close();
         }catch (Exception e) {
@@ -99,20 +106,25 @@ public class StreamDataBase {
         }
     }
 
-    // private void splitDataByInterval(java.sql.Timestamp time, double closePrice, int interval, List<java.sql.Timestamp> time_compare){
-    //         if(time_compare.size() == 1){System.out.println("Close Price: " + closePrice + " " + time + " " + figi + "hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh");}
-    //         if(time_compare.size() >= 2){
-
-    //             long result = time_compare.get(time_compare.size() - 1).getTime() - time_compare.get(time_compare.size() - 2).getTime();
-
-    //             if(result >= (interval*60000) && result <= (interval*60000*2)){
-                    
-    //                 System.out.println("Close Price: " + closePrice + " " + time + " " + figi + " " + result); //позже будет передавать в класс стратегий
-                    
-                        
-    //             }
-    //         }
-    // }
+    private void splitDataByInterval(java.sql.Timestamp time, double closePrice, int interval, String figi){
+            intervals.add(time);
+            
+            if(intervals.size() == 2){
+                long result = intervals.get(1).getTime() - intervals.get(0).getTime();
+                if(result == interval*60000){
+                    System.out.println(intervals.get(1));
+                    intervals.remove(0);
+                }else if(result < interval*60000){
+                    intervals.remove(1);
+                }else{
+                    System.out.println(intervals.get(1));
+                    intervals.remove(0);
+                }
+            }else if(intervals.size() == 1){
+                System.out.println(intervals.get(0));
+            }
+    }
+    
     
     
     public void deleteData(){
